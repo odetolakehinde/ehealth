@@ -1,29 +1,39 @@
 <template>
   <v-container>
-    <v-sheet
-      v-if="isFetchingData"
-      color="grey lighten-3"
-      class="px-3 pt-3 pb-3"
-    >
-      <v-skeleton-loader
-        class="mx-auto"
-        max-width="300"
-        type="card"
-      ></v-skeleton-loader>
-    </v-sheet>
-    <div v-else>
-      <v-row>
-        <v-col>
-          <section class="charts">
-            <vue-highcharts :options="bloodGroupOptions" ref="barChart"></vue-highcharts>
-          </section>
-        </v-col>
-        <v-col>
-          <section class="charts">
-            <vue-highcharts :options="ageOptions" ref="barChart"></vue-highcharts>
-          </section>
-        </v-col>
-      </v-row>
+    <div class="text-center">
+      <br><br><br>
+      <p v-if="isOnline" class="subtitle-1">You are online</p>
+      <v-sheet
+        v-if="isFetchingData"
+        color="grey lighten-3"
+        class="px-3 pt-3 pb-3"
+      >
+        <v-skeleton-loader
+          class="mx-auto"
+          max-width="300"
+          type="card"
+        ></v-skeleton-loader>
+      </v-sheet>
+      <div v-else>
+        <v-row>
+          <v-col cols="6">
+            <section class="charts">
+              <vue-highcharts :options="bloodGroupOptions" ref="barChart"></vue-highcharts>
+            </section>
+          </v-col>
+          <v-col cols="6">
+            <section class="charts">
+              <vue-highcharts :options="ageOptions" ref="barChart"></vue-highcharts>
+            </section>
+          </v-col>
+        </v-row>
+      </div>
+    </div>
+
+    <div class="text-center mr-15 ml-15" v-if="!isOnline">
+      <v-card class="py-10">
+        You are offline. We are getting data from the localstorage
+      </v-card>
     </div>
 
     <p class="mt-10 caption text-center">Hint: Data is in console</p>
@@ -51,7 +61,6 @@ export default {
 
   methods: {
     fetchData () {
-      this.isFetchingData = true
       db.collection('sampledata')
         .get()
         .then((querySnapshot) => {
@@ -60,6 +69,7 @@ export default {
           })
           this.isFetchingData = false
           console.log(this.fetchedData)
+          localStorage.setItem('data', JSON.stringify(this.fetchedData))
           this.sortData()
         })
         .catch((error) => {
@@ -213,6 +223,10 @@ export default {
 
   mounted () {
     this.fetchData()
+    if (this.isOffline) {
+      this.fetchedData = JSON.parse(localStorage.getItem('data'))
+      this.isFetchingData = false
+    }
   }
 }
 </script>
